@@ -51,6 +51,7 @@
   color: #222;
   height: 38px;
   overflow: hidden;
+  display: -webkit-box;
 }
 
 .product-price {
