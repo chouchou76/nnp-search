@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { Firestore, collectionData, collection } from '@angular/fire/firestore';
 import { Observable } from 'rxjs';
+import { map } from 'rxjs/operators'; // Add this import
 
 export interface Product {
   name: string;
@@ -18,6 +19,17 @@ export class ProductService {
 
   getProducts(): Observable<Product[]> {
     const productsRef = collection(this.firestore, 'products');
-    return collectionData(productsRef, { idField: 'id' }) as Observable<Product[]>;
+    return collectionData(productsRef, { idField: 'id' }).pipe(
+      map(data => {
+        console.log('Raw data from Firestore:', data); // Debug raw data
+        return data.map(item => ({
+          name: item['name'] || item['productName'] || 'No name', // Handle variations
+          price_vnd: item['price_vnd']?.toString() || '0', // Ensure string
+          image_urls: item['image_urls'] || [''], // Default to empty array
+          url: item['url'],
+          description: item['description']
+        })) as Product[];
+      })
+    );
   }
 }

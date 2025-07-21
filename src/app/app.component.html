@@ -6,11 +6,26 @@
 />
 
 <div class="product-grid">
-  <div class="product-card" *ngFor="let product of filteredProducts">
-    <img [src]="product.image_urls[0]" />
-    <p class="product-name">
-      {{ product.name | slice:0:50 }}<span *ngIf="product.name.length > 50">...</span>
-    </p>
+  <div class="product-card" *ngFor="let product of paginatedProducts">
+    <img *ngIf="product.image_urls.length" [src]="product.image_urls[0]" alt="product image" />
+    <p class="product-name">{{ product.name }}</p>
     <p class="product-price">{{ product.price_vnd }}₫</p>
+    <div class="product-add">
+      <img src="https://cdn-icons-png.flaticon.com/512/1828/1828817.png" alt="add icon" />
+    </div>
   </div>
 </div>
+
+<div class="pagination" *ngIf="totalPages > 1">
+  <button (click)="changePage(currentPage - 1)" [disabled]="currentPage === 1">‹</button>
+  <button
+    *ngFor="let page of [].constructor(totalPages); let i = index"
+    (click)="changePage(i + 1)"
+    [class.active]="currentPage === i + 1"
+  >
+    {{ i + 1 }}
+  </button>
+  <button (click)="changePage(currentPage + 1)" [disabled]="currentPage === totalPages">›</button>
+</div>
+
+<p *ngIf="filteredProducts.length === 0">Không có sản phẩm nào được tìm thấy.</p>
