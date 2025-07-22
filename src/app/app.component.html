@@ -2,6 +2,7 @@
   type="text"
   placeholder="Tìm kiếm..."
   (input)="onSearch($event)"
+  (keydown.enter)="onSearch($event)"
   class="search-bar"
 />
 

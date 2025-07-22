@@ -9,6 +9,7 @@ export interface Product {
   image_urls: string[];
   url?: string;
   description?: string;
+  embedding: number[];
 }
 
 @Injectable({

@@ -1,6 +1,7 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { HttpClient } from '@angular/common/http';
 import { ProductService, Product } from '../services/product.service';
 
 @Component({
@@ -13,36 +14,49 @@ import { ProductService, Product } from '../services/product.service';
 export class AppComponent {
   products: Product[] = [];
   filteredProducts: Product[] = [];
+  currentPage = 1;
+  itemsPerPage = 25;
+  totalPages = 0;
 
-  constructor(private productService: ProductService) {}
+  constructor(
+    private productService: ProductService,
+    private http: HttpClient
+  ) {}
 
   ngOnInit() {
     this.productService.getProducts().subscribe({
       next: (data: Product[]) => {
-        console.log('Fetched products:', data); // Debug the fetched data
-        this.products = data || []; // Ensure it's an array
+        this.products = data || [];
         this.filteredProducts = [...this.products];
         this.totalPages = Math.ceil(this.filteredProducts.length / this.itemsPerPage);
-        console.log('filteredProducts after assignment:', this.filteredProducts);
       },
-      error: (err) => console.error('Error fetching products:', err) // Catch errors
+      error: (err) => console.error('Error fetching products:', err)
     });
   }
 
   onSearch(event: Event) {
-    const query = (event.target as HTMLInputElement).value.toLowerCase();
-    this.filteredProducts = query
-      ? this.products.filter(p => p.name.toLowerCase().includes(query))
-      : [...this.products]; // Reset to all products if query is empty
-
+    const query = (event.target as HTMLInputElement).value.trim();
+    if (!query) {
+      this.filteredProducts = [...this.products];
       this.currentPage = 1;
       this.totalPages = Math.ceil(this.filteredProducts.length / this.itemsPerPage);
-    console.log('Filtered products after search:', this.filteredProducts);
-  }
+      return;
+    }
 
-  currentPage = 1;
-  itemsPerPage = 25;
-  totalPages = 0;
+    this.http.post<Product[]>('http://localhost:5000/search', {
+      query: query,
+      top_k: 999
+    }).subscribe({
+      next: (results: Product[]) => {
+        this.filteredProducts = results;
+        this.currentPage = 1;
+        this.totalPages = Math.ceil(this.filteredProducts.length / this.itemsPerPage);
+      },
+      error: (err: any) => {
+        console.error('Semantic search failed:', err);
+      }
+    });
+  }
 
   get paginatedProducts(): Product[] {
     const start = (this.currentPage - 1) * this.itemsPerPage;
@@ -54,6 +68,4 @@ export class AppComponent {
       this.currentPage = page;
     }
   }
-
-
 }

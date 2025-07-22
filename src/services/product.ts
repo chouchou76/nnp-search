@@ -3,4 +3,5 @@ export interface Product {
   price_vnd: string;
   image_urls: string[];
   description: string;
+  embedding: number[];
 }
