@@ -14,10 +14,16 @@ import { ProductService, Product } from '../services/product.service';
 })
 export class AppComponent {
   products: Product[] = [];
+  searchResults: Product[] = [];
   filteredProducts: Product[] = [];
+
   currentPage = 1;
   itemsPerPage = 25;
   totalPages = 0;
+
+  minPrice: number | null = null;
+  maxPrice: number | null = null;
+  sortOrder: 'asc' | 'desc' | null = null;
 
   constructor(
     private productService: ProductService,
@@ -29,9 +35,8 @@ export class AppComponent {
     this.productService.getProducts().subscribe({
       next: (data: Product[]) => {
         this.products = data || [];
-        this.filteredProducts = [...this.products];
-        this.totalPages = Math.ceil(this.filteredProducts.length / this.itemsPerPage);
-        this.cdr.detectChanges();
+        this.searchResults = [...this.products];
+        this.applyFilters();
       },
       error: (err) => console.error('Error fetching products:', err)
     });
@@ -39,28 +44,53 @@ export class AppComponent {
 
   onSearch(event: Event) {
     const query = (event.target as HTMLInputElement).value.trim();
+
     if (!query) {
-      this.filteredProducts = [...this.products];
-      this.totalPages = Math.ceil(this.filteredProducts.length / this.itemsPerPage);
-      this.currentPage = 1;
-      this.cdr.detectChanges();
+      this.searchResults = [...this.products];
+      this.applyFilters();
       return;
     }
 
     this.http.post<Product[]>('http://localhost:5000/search', {
       query: query,
-      top_k: 50  // ✅ Quay lại top_k cố định
+      top_k: 50
     }).subscribe({
       next: (results: Product[]) => {
-        this.filteredProducts = results;
-        this.totalPages = Math.ceil(this.filteredProducts.length / this.itemsPerPage);
-        this.currentPage = 1;
-        this.cdr.detectChanges();
+        this.searchResults = results;
+        this.applyFilters();
       },
       error: (err) => {
         console.error("Search error:", err);
       }
     });
+  }
+
+  parsePrice(price: string | number): number {
+    if (typeof price === 'number') return price;
+    return parseFloat(price.replace(/[^\d]/g, '')) || 0;
+  }
+
+  applyFilters() {
+    let temp = [...this.searchResults];
+
+    if (this.minPrice !== null) {
+      temp = temp.filter(p => this.parsePrice(p.price_vnd) >= this.minPrice!);
+    }
+
+    if (this.maxPrice !== null) {
+      temp = temp.filter(p => this.parsePrice(p.price_vnd) <= this.maxPrice!);
+    }
+
+    if (this.sortOrder === 'asc') {
+      temp.sort((a, b) => this.parsePrice(a.price_vnd) - this.parsePrice(b.price_vnd));
+    } else if (this.sortOrder === 'desc') {
+      temp.sort((a, b) => this.parsePrice(b.price_vnd) - this.parsePrice(a.price_vnd));
+    }
+
+    this.filteredProducts = temp;
+    this.totalPages = Math.ceil(this.filteredProducts.length / this.itemsPerPage);
+    this.currentPage = 1;
+    this.cdr.detectChanges();
   }
 
   get paginatedProducts(): Product[] {

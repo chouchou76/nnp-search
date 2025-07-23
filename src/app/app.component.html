@@ -6,6 +6,26 @@
   class="search-bar"
 />
 
+<div class="filter-bar">
+  <label>
+    Giá từ:
+    <input type="number" [(ngModel)]="minPrice" (input)="applyFilters()" />
+  </label>
+  <label>
+    đến:
+    <input type="number" [(ngModel)]="maxPrice" (input)="applyFilters()" />
+  </label>
+
+  <label>
+    Sắp xếp:
+    <select [(ngModel)]="sortOrder" (change)="applyFilters()">
+      <option value="">-- Chọn --</option>
+      <option value="asc">Giá tăng dần</option>
+      <option value="desc">Giá giảm dần</option>
+    </select>
+  </label>
+</div>
+
 <div class="product-grid">
   <div class="product-card" *ngFor="let product of paginatedProducts">
     <img *ngIf="product.image_urls.length" [src]="product.image_urls[0]" alt="product image" />
