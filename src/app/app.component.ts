@@ -2,6 +2,7 @@ import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
+import { ChangeDetectorRef } from '@angular/core';
 import { ProductService, Product } from '../services/product.service';
 
 @Component({
@@ -20,7 +21,8 @@ export class AppComponent {
 
   constructor(
     private productService: ProductService,
-    private http: HttpClient
+    private http: HttpClient,
+    private cdr: ChangeDetectorRef
   ) {}
 
   ngOnInit() {
@@ -29,6 +31,7 @@ export class AppComponent {
         this.products = data || [];
         this.filteredProducts = [...this.products];
         this.totalPages = Math.ceil(this.filteredProducts.length / this.itemsPerPage);
+        this.cdr.detectChanges();
       },
       error: (err) => console.error('Error fetching products:', err)
     });
@@ -37,23 +40,22 @@ export class AppComponent {
   onSearch(event: Event) {
     const query = (event.target as HTMLInputElement).value.trim();
     if (!query) {
-      // Khi query rỗng, trả lại toàn bộ sản phẩm gốc từ Firestore
       this.filteredProducts = [...this.products];
       this.totalPages = Math.ceil(this.filteredProducts.length / this.itemsPerPage);
       this.currentPage = 1;
+      this.cdr.detectChanges();
       return;
     }
 
-    // Khi có query: gửi đến Flask semantic search
     this.http.post<Product[]>('http://localhost:5000/search', {
       query: query,
-      top_k: 25
+      top_k: 50  // ✅ Quay lại top_k cố định
     }).subscribe({
       next: (results: Product[]) => {
-        const exactMatch = results.find(p => p.name.toLowerCase() === query.toLowerCase());
-        this.filteredProducts = exactMatch ? [exactMatch] : results;
+        this.filteredProducts = results;
         this.totalPages = Math.ceil(this.filteredProducts.length / this.itemsPerPage);
         this.currentPage = 1;
+        this.cdr.detectChanges();
       },
       error: (err) => {
         console.error("Search error:", err);
@@ -61,8 +63,8 @@ export class AppComponent {
     });
   }
 
-
   get paginatedProducts(): Product[] {
+    if (!this.filteredProducts || this.filteredProducts.length === 0) return [];
     const start = (this.currentPage - 1) * this.itemsPerPage;
     return this.filteredProducts.slice(start, start + this.itemsPerPage);
   }
@@ -70,6 +72,7 @@ export class AppComponent {
   changePage(page: number): void {
     if (page >= 1 && page <= this.totalPages) {
       this.currentPage = page;
+      this.cdr.detectChanges();
     }
   }
 }
