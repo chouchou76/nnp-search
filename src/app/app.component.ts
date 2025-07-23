@@ -37,26 +37,30 @@ export class AppComponent {
   onSearch(event: Event) {
     const query = (event.target as HTMLInputElement).value.trim();
     if (!query) {
+      // Khi query rỗng, trả lại toàn bộ sản phẩm gốc từ Firestore
       this.filteredProducts = [...this.products];
-      this.currentPage = 1;
       this.totalPages = Math.ceil(this.filteredProducts.length / this.itemsPerPage);
+      this.currentPage = 1;
       return;
     }
 
+    // Khi có query: gửi đến Flask semantic search
     this.http.post<Product[]>('http://localhost:5000/search', {
       query: query,
-      top_k: 999
+      top_k: 25
     }).subscribe({
       next: (results: Product[]) => {
-        this.filteredProducts = results;
-        this.currentPage = 1;
+        const exactMatch = results.find(p => p.name.toLowerCase() === query.toLowerCase());
+        this.filteredProducts = exactMatch ? [exactMatch] : results;
         this.totalPages = Math.ceil(this.filteredProducts.length / this.itemsPerPage);
+        this.currentPage = 1;
       },
-      error: (err: any) => {
-        console.error('Semantic search failed:', err);
+      error: (err) => {
+        console.error("Search error:", err);
       }
     });
   }
+
 
   get paginatedProducts(): Product[] {
     const start = (this.currentPage - 1) * this.itemsPerPage;
