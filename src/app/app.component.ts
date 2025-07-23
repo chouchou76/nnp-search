@@ -88,6 +88,7 @@ export class AppComponent {
   }
 
   onSearch(event: Event) {
+    this.showDropdown = false;
     const query = (event.target as HTMLInputElement).value.trim();
 
     if (!query) {
