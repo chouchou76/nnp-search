@@ -1,10 +1,25 @@
 <input
   type="text"
   placeholder="Tìm kiếm..."
-  (input)="onSearch($event)"
+  [(ngModel)]="searchQuery"
+  (input)="onInputChange($event)"
   (keydown.enter)="onSearch($event)"
   class="search-bar"
 />
+
+<div class="search-dropdown" *ngIf="showDropdown">
+  <p class="dropdown-title">Kết quả tìm kiếm cho <span class="highlight">{{ searchQuery }}</span></p>
+
+  <div class="dropdown-item" *ngFor="let product of suggestedProducts">
+    <img *ngIf="product.image_urls?.length" [src]="product.image_urls[0]" alt="product" />
+    <span class="product-name">{{ product.name }}</span>
+  </div>
+
+  <div class="view-all" (click)="onSearchFromDropdown()">
+    Xem tất cả sản phẩm có chứa <strong>{{ searchQuery }}</strong>
+  </div>
+</div>
+
 
 <div class="filter-bar">
   <label>

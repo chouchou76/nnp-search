@@ -21,6 +21,10 @@ export class AppComponent {
   itemsPerPage = 25;
   totalPages = 0;
 
+  searchQuery = '';
+  suggestedProducts: Product[] = [];
+  showDropdown = false;
+
   minPrice: number | null = null;
   maxPrice: number | null = null;
   sortOrder: 'asc' | 'desc' | null = null;
@@ -39,6 +43,47 @@ export class AppComponent {
         this.applyFilters();
       },
       error: (err) => console.error('Error fetching products:', err)
+    });
+  }
+
+  onInputChange(event: Event) {
+    this.searchQuery = (event.target as HTMLInputElement).value.trim();
+
+    if (!this.searchQuery) {
+      this.suggestedProducts = [];
+      this.showDropdown = false;
+      return;
+    }
+
+    this.http.post<Product[]>('http://localhost:5000/search', {
+      query: this.searchQuery,
+      top_k: 10
+    }).subscribe({
+      next: (results) => {
+        this.suggestedProducts = results;
+        this.showDropdown = results.length > 0;
+      },
+      error: (err) => {
+        console.error('Error loading suggestions:', err);
+        this.showDropdown = false;
+      }
+    });
+  }
+
+  onSearchFromDropdown() {
+    this.http.post<Product[]>('http://localhost:5000/search', {
+      query: this.searchQuery,
+      top_k: 50
+    }).subscribe({
+      next: (results: Product[]) => {
+        this.searchResults = results;
+        this.applyFilters();
+        this.showDropdown = false;
+      },
+      error: (err) => {
+        console.error("Search error:", err);
+        this.showDropdown = false;
+      }
     });
   }
 
