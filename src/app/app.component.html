@@ -1,11 +1,69 @@
-<input
+<!-- <input
   type="text"
   placeholder="Tìm kiếm..."
   [(ngModel)]="searchQuery"
   (input)="onInputChange($event)"
   (keydown.enter)="onSearch($event)"
   class="search-bar"
-/>
+/> -->
+
+<header class="main-header">
+  <div class="header-container">
+    <!-- Logo -->
+    <div class="logo">
+      <img 
+      src="//theme.hstatic.net/1000269461/1000985512/14/logo_medium.png?v=2201" 
+      alt="logo Nông Nghiệp Phố"
+      width="222"
+      height="36" />
+    </div>
+
+    <!-- Search box -->
+    <div class="search-section">
+      <input
+        type="text"
+        placeholder="Tìm kiếm..."
+        [(ngModel)]="searchQuery"
+        (input)="onInputChange($event)"
+        (keydown.enter)="onSearch($event)"
+        class="search-bar"
+      />
+      <button (click)="onSearch($event)" class="search-button">
+        <img src="https://cdn-icons-png.flaticon.com/512/622/622669.png" alt="search icon" />
+      </button>
+    </div>
+
+    <!-- Hotline + actions -->
+    <div class="header-actions">
+      <div class="action-item">
+        <img src="https://cdn-icons-png.flaticon.com/512/597/597177.png" alt="phone" />
+        <div>
+          <p>Gọi mua hàng</p>
+          <strong>0865399086</strong>
+        </div>
+      </div>
+      <div class="action-item">
+        <img src="https://cdn-icons-png.flaticon.com/512/684/684908.png" alt="map" />
+        <div>
+          <p>Hệ thống</p>
+          <p>cửa hàng</p>
+        </div>
+      </div>
+      <div class="action-item">
+        <img src="https://cdn-icons-png.flaticon.com/512/747/747376.png" alt="account" />
+        <div>
+          <p>Tài khoản</p>
+          <p>Đăng nhập</p>
+        </div>
+      </div>
+      <div class="cart-box">
+        <img src="https://cdn-icons-png.flaticon.com/512/263/263142.png" alt="cart" />
+        <span class="cart-count">0</span>
+        <strong>Giỏ hàng</strong>
+      </div>
+    </div>
+  </div>
+</header>
 
 <div class="search-dropdown" *ngIf="showDropdown">
   <p class="dropdown-title">Kết quả tìm kiếm cho <span class="highlight">{{ searchQuery }}</span></p>

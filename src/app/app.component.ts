@@ -88,7 +88,9 @@ export class AppComponent {
   }
 
   onSearch(event: Event) {
-    const query = (event.target as HTMLInputElement).value.trim();
+    this.showDropdown = false;
+    // const query = (event.target as HTMLInputElement).value.trim();
+    const query = this.searchQuery.trim();
 
     if (!query) {
       this.searchResults = [...this.products];
