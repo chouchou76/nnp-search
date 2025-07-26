@@ -54,7 +54,7 @@ export class AppComponent {
   loadTopKeywords() {
     this.http.get<any[]>("http://localhost:5000/search/top_keywords").subscribe({
       next: (res) => {
-        this.topKeywords = res;
+        this.topKeywords = res.slice(0, 6);
       },
       error: (err) => {
         console.error("Không tải được top từ khóa:", err);
