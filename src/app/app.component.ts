@@ -52,11 +52,16 @@ export class AppComponent {
   }
 
   loadTopKeywords() {
-    this.http.get<any[]>('http://localhost:5000/search/top_keywords').subscribe(res => {
-      this.topKeywords = res;
+    this.http.get<any[]>("http://localhost:5000/search/top_keywords").subscribe({
+      next: (res) => {
+        this.topKeywords = res;
+      },
+      error: (err) => {
+        console.error("Không tải được top từ khóa:", err);
+      }
     });
   }
-
+  
   loadSearchHistory() {
     const history = localStorage.getItem("searchHistory");
     this.searchHistory = history ? JSON.parse(history) : [];
@@ -81,7 +86,8 @@ export class AppComponent {
 
     this.http.post<Product[]>('http://localhost:5000/search', {
       query: this.searchQuery,
-      top_k: 10
+      top_k: 10,
+      log: false
     }).subscribe({
       next: (results) => {
         this.suggestedProducts = results;
@@ -108,7 +114,8 @@ export class AppComponent {
 
     this.http.post<Product[]>('http://localhost:5000/search', {
       query: query,
-      top_k: 50
+      top_k: 20,
+      log: true
     }).subscribe({
       next: (results: Product[]) => {
         this.searchResults = results;
@@ -126,7 +133,8 @@ export class AppComponent {
 
     this.http.post<Product[]>('http://localhost:5000/search', {
       query: this.searchQuery.trim(),
-      top_k: 50
+      top_k: 20,
+      log: true
     }).subscribe({
       next: (results: Product[]) => {
         this.searchResults = results;
