@@ -29,6 +29,9 @@ export class AppComponent {
   maxPrice: number | null = null;
   sortOrder: 'asc' | 'desc' | null = null;
 
+  searchHistory: string[] = [];
+  topKeywords: { keyword: string; count: number }[] = [];
+
   constructor(
     private productService: ProductService,
     private http: HttpClient,
@@ -44,6 +47,27 @@ export class AppComponent {
       },
       error: (err) => console.error('Error fetching products:', err)
     });
+    this.loadTopKeywords();
+    this.loadSearchHistory();
+  }
+
+  loadTopKeywords() {
+    this.http.get<any[]>('http://localhost:5000/search/top_keywords').subscribe(res => {
+      this.topKeywords = res;
+    });
+  }
+
+  loadSearchHistory() {
+    const history = localStorage.getItem("searchHistory");
+    this.searchHistory = history ? JSON.parse(history) : [];
+  }
+
+  saveSearchToHistory(query: string) {
+    if (!this.searchHistory.includes(query)) {
+      this.searchHistory.unshift(query);
+      this.searchHistory = this.searchHistory.slice(0, 10);
+      localStorage.setItem("searchHistory", JSON.stringify(this.searchHistory));
+    }
   }
 
   onInputChange(event: Event) {
@@ -51,7 +75,7 @@ export class AppComponent {
 
     if (!this.searchQuery) {
       this.suggestedProducts = [];
-      this.showDropdown = false;
+      this.showDropdown = false; // hiển thị từ khóa phổ biến + lịch sử
       return;
     }
 
@@ -70,9 +94,38 @@ export class AppComponent {
     });
   }
 
-  onSearchFromDropdown() {
+  onSearch(event: Event) {
+    this.showDropdown = false;
+    const query = this.searchQuery.trim();
+
+    if (!query) {
+      this.searchResults = [...this.products];
+      this.applyFilters();
+      return;
+    }
+
+    this.saveSearchToHistory(query);
+
     this.http.post<Product[]>('http://localhost:5000/search', {
-      query: this.searchQuery,
+      query: query,
+      top_k: 50
+    }).subscribe({
+      next: (results: Product[]) => {
+        this.searchResults = results;
+        this.applyFilters();
+      },
+      error: (err) => {
+        console.error("Search error:", err);
+      }
+    });
+  }
+
+  onSearchFromDropdown() {
+    if (!this.searchQuery.trim()) return;
+    this.saveSearchToHistory(this.searchQuery.trim());
+
+    this.http.post<Product[]>('http://localhost:5000/search', {
+      query: this.searchQuery.trim(),
       top_k: 50
     }).subscribe({
       next: (results: Product[]) => {
@@ -87,29 +140,27 @@ export class AppComponent {
     });
   }
 
-  onSearch(event: Event) {
-    this.showDropdown = false;
-    // const query = (event.target as HTMLInputElement).value.trim();
-    const query = this.searchQuery.trim();
-
-    if (!query) {
-      this.searchResults = [...this.products];
-      this.applyFilters();
-      return;
+  onFocusSearch() {
+    this.showDropdown = true;
+    if (!this.searchQuery.trim()) {
+      this.loadTopKeywords();
+      this.loadSearchHistory();
     }
+  }
 
-    this.http.post<Product[]>('http://localhost:5000/search', {
-      query: query,
-      top_k: 50
-    }).subscribe({
-      next: (results: Product[]) => {
-        this.searchResults = results;
-        this.applyFilters();
-      },
-      error: (err) => {
-        console.error("Search error:", err);
+  onBlurSearch() {
+    // giữ dropdown nếu click vào trong đó
+    setTimeout(() => {
+      const focused = document.activeElement as HTMLElement;
+      if (!focused || !focused.closest('.search-dropdown')) {
+        this.showDropdown = false;
       }
-    });
+    }, 200);
+  }
+
+  clearSearchHistory() {
+    this.searchHistory = [];
+    localStorage.removeItem("searchHistory");
   }
 
   parsePrice(price: string | number): number {

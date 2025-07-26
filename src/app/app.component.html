@@ -18,20 +18,52 @@
       height="36" />
     </div>
 
-    <!-- Search box -->
-    <div class="search-section">
-      <input
-        type="text"
-        placeholder="Tìm kiếm..."
-        [(ngModel)]="searchQuery"
-        (input)="onInputChange($event)"
-        (keydown.enter)="onSearch($event)"
-        class="search-bar"
-      />
-      <button (click)="onSearch($event)" class="search-button">
-        <img src="https://cdn-icons-png.flaticon.com/512/622/622669.png" alt="search icon" />
-      </button>
-    </div>
+    <div class="search-section" (click)="onFocusSearch()" tabindex="0">
+  <input
+    type="text"
+    placeholder="Tìm kiếm..."
+    [(ngModel)]="searchQuery"
+    (input)="onInputChange($event)"
+    (keydown.enter)="onSearch($event)"
+    (focus)="onFocusSearch()"
+    (blur)="onBlurSearch()"
+    class="search-bar"
+  />
+  <button (click)="onSearch($event)" class="search-button">
+    <img src="https://cdn-icons-png.flaticon.com/512/622/622669.png" alt="search icon" />
+  </button>
+
+  <!-- ✅ Dropdown Gợi ý -->
+  <div class="search-dropdown" [ngClass]="{ show: showDropdown }">
+    <ng-container *ngIf="searchQuery; else suggestionBlock">
+      <!-- <p class="dropdown-title">Kết quả tìm kiếm cho <span class="highlight">{{ searchQuery }}</span></p> -->
+      <div class="dropdown-item" *ngFor="let product of suggestedProducts" (click)="searchQuery = product.name; onSearch($event)">
+        <img *ngIf="product.image_urls?.length" [src]="product.image_urls[0]" alt="product" />
+        <span class="product-name">{{ product.name }}</span>
+      </div>
+      <div class="view-all" (click)="onSearchFromDropdown()">
+        Xem tất cả sản phẩm có chứa <strong>{{ searchQuery }}</strong>
+      </div>
+    </ng-container>
+
+    <ng-template #suggestionBlock>
+      <div *ngIf="topKeywords.length > 0">
+        <p class="dropdown-title">🔝 Từ khóa nổi bật</p>
+        <div class="dropdown-item" *ngFor="let keyword of topKeywords" (click)="searchQuery = keyword.keyword; onSearch($event)">
+          <span class="product-name">{{ keyword.keyword }} ({{ keyword.count }} lượt)</span>
+        </div>
+      </div>
+
+      <div *ngIf="searchHistory.length > 0">
+        <p class="dropdown-title">🕘 Lịch sử tìm kiếm</p>
+        <span class="clear-history-btn" (click)="clearSearchHistory()">Xoá lịch sử</span>
+        <div class="dropdown-item" *ngFor="let history of searchHistory" (click)="searchQuery = history; onSearch($event)">
+          <span class="product-name">{{ history }}</span>
+        </div>
+      </div>
+    </ng-template>
+  </div>
+</div>
 
     <!-- Hotline + actions -->
     <div class="header-actions">
@@ -65,7 +97,7 @@
   </div>
 </header>
 
-<div class="search-dropdown" *ngIf="showDropdown">
+<!-- <div class="search-dropdown" *ngIf="showDropdown">
   <p class="dropdown-title">Kết quả tìm kiếm cho <span class="highlight">{{ searchQuery }}</span></p>
 
   <div class="dropdown-item" *ngFor="let product of suggestedProducts">
@@ -76,7 +108,7 @@
   <div class="view-all" (click)="onSearchFromDropdown()">
     Xem tất cả sản phẩm có chứa <strong>{{ searchQuery }}</strong>
   </div>
-</div>
+</div> -->
 
 
 <div class="filter-bar">
