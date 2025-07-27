@@ -114,7 +114,7 @@ export class AppComponent {
 
     this.http.post<Product[]>('http://localhost:5000/search', {
       query: query,
-      top_k: 20,
+      top_k: 30,
       log: true
     }).subscribe({
       next: (results: Product[]) => {
@@ -133,7 +133,7 @@ export class AppComponent {
 
     this.http.post<Product[]>('http://localhost:5000/search', {
       query: this.searchQuery.trim(),
-      top_k: 20,
+      top_k: 30,
       log: true
     }).subscribe({
       next: (results: Product[]) => {
